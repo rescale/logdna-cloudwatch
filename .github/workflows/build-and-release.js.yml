@@ -7,7 +7,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, feature/* ]
 
 jobs:
   build:
@@ -24,10 +24,11 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - run: npm install
     - run: npm run lint
     - run: npm run build --if-present
     - run: npm run test
-    - run: npm run install --production
+    - run: npm install --production
     - run: zip logdna-cloudwatch.zip -r node_modules/ index.js package.json
       
     - name: Upload LogDNA Cloudwatch

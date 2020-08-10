@@ -10,7 +10,8 @@
   "dependencies": {
     "agentkeepalive": "^4.0.2",
     "async": "^2.6.2",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "aws-ssm-parameter-resolve": "3.0.0"
   },
   "devDependencies": {
     "eslint": "^6.7.2",
