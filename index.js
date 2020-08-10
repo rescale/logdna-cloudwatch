@@ -4,7 +4,7 @@ const asyncRetry = require('async').retry;
 const request = require('request');
 const ssmParameterResolver = require('aws-ssm-parameter-resolve');
 const zlib = require('zlib');
-const { process } = require('tap');
+const process = require('process');
 
 // Constants
 const MAX_REQUEST_TIMEOUT_MS = parseInt(process.env.LOGDNA_MAX_REQUEST_TIMEOUT) || 30000;
@@ -22,7 +22,7 @@ const DEFAULT_HTTP_ERRORS = [
     , 'ENOTFOUND'
 ];
 
-// Get the LogDNA API Key from SSM
+// Pulls the LogDNA API key from SSM
 const getApiKeyFromSSM = async(ssm_secret_path) => {
     if (!ssm_secret_path || ssm_secret_path === '') {
         return undefined;
@@ -60,8 +60,9 @@ const getConfig = () => {
         config.log_raw_event = config.log_raw_event === 'yes' || config.log_raw_event === 'true';
     }
 
-    if (!config.key || config.key === '' && process.env.SSM_SECRET_LOGNDA_KEY_PATH) {
-        // config.key = getApiKeyFromSSM();
+    if ((!config.key || config.key === '') && process.env.SSM_SECRET_LOGNDA_KEY_PATH && process.env.SSM_SECRET_LOGNDA_KEY_PATH !== '') {
+        console.info('Looking for api key from ssm');
+        config.key = getApiKeyFromSSM();
     }
 
     return config;
