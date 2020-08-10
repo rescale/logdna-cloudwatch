@@ -2,7 +2,9 @@
 const agent = require('agentkeepalive');
 const asyncRetry = require('async').retry;
 const request = require('request');
+const ssmParameterResolver = require('aws-ssm-parameter-resolve');
 const zlib = require('zlib');
+const { process } = require('tap');
 
 // Constants
 const MAX_REQUEST_TIMEOUT_MS = parseInt(process.env.LOGDNA_MAX_REQUEST_TIMEOUT) || 30000;
@@ -19,6 +21,25 @@ const DEFAULT_HTTP_ERRORS = [
     , 'ECONNREFUSED'
     , 'ENOTFOUND'
 ];
+
+// Get the LogDNA API Key from SSM
+const getApiKeyFromSSM = async(ssm_secret_path) => {
+    if (!ssm_secret_path || ssm_secret_path === '') {
+        return undefined;
+    }
+
+    try {
+        const paramName = ssm_secret_path.split('/').pop();
+
+        var parameters = await ssmParameterResolver.resolve(process.env.SSM_SECRET_LOGNDA_KEY_PATH);
+
+        return parameters.get(paramName);
+    } catch (error) {
+        console.error('Failed to pull the LogDNA API Key from SSM: ', error);
+    }
+
+    return undefined;
+};
 
 // Get Configuration from Environment Variables
 const getConfig = () => {
@@ -37,6 +58,10 @@ const getConfig = () => {
     if (process.env.LOG_RAW_EVENT) {
         config.log_raw_event = process.env.LOG_RAW_EVENT.toLowerCase();
         config.log_raw_event = config.log_raw_event === 'yes' || config.log_raw_event === 'true';
+    }
+
+    if (!config.key || config.key === '' && process.env.SSM_SECRET_LOGNDA_KEY_PATH) {
+        // config.key = getApiKeyFromSSM();
     }
 
     return config;
