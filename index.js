@@ -161,7 +161,12 @@ const sendLine = (payload, config, callback) => {
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
     }, (reqCallback) => {
+        console.debug('Executing the request: ', options);
         return request(options, (error, response, body) => {
+            console.debug('Request callback fired with error: ', error);
+            console.debug('Request callback fired with resp: ', response);
+            console.debug('Request callback fired with body: ', body);
+
             if (error) {
                 console.debug('Failed to post the logs: ', error);
                 return reqCallback(error.code);
