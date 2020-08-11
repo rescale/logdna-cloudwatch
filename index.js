@@ -121,7 +121,7 @@ const prepareLogs = (eventData, log_raw_event) => {
 // Ship the Logs
 const sendLine = async(payload, config) => {
     // Check for Ingestion Key
-    if (!config.key) return callback('Missing LogDNA Ingestion Key');
+    if (!config.key) throw (new Error('Missing LogDNA Ingestion Key'));
 
     // Set Hostname
     const hostname = config.hostname || JSON.parse(payload[0].line).log.group;
