@@ -71,7 +71,9 @@ const getConfig = async() => {
             config.key = undefined;
         }
 
-        console.debug('API Key set to: ', config.key);
+        if (config.key) {
+            console.debug('API Key was successfully set.');
+        }
     }
 
     return config;
