@@ -165,8 +165,10 @@ const sendLine = (payload, config, callback) => {
                 return reqCallback(error.code);
             }
             if (response.statusCode >= INTERNAL_SERVER_ERROR) {
+                console.debug('Server returned an internal server error: ', body);
                 return reqCallback('INTERNAL_SERVER_ERROR');
             }
+            console.debug('Non failure response: ', body);
             return reqCallback(null, body);
         });
     }, (error, result) => {
@@ -174,6 +176,7 @@ const sendLine = (payload, config, callback) => {
             console.debug('Caught an error waiting for the results of the post: ', error);
             return callback(error);
         }
+        console.debug('Non error Result: ', result);
         return callback(null, result);
     });
 };
