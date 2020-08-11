@@ -125,6 +125,7 @@ const sendLine = (payload, config, callback) => {
     // Set Hostname
     const hostname = config.hostname || JSON.parse(payload[0].line).log.group;
 
+    console.debug('Pushing logs to: ', LOGDNA_URL);
     // Prepare HTTP Request Options
     const options = {
         url: LOGDNA_URL
@@ -160,6 +161,7 @@ const sendLine = (payload, config, callback) => {
     }, (reqCallback) => {
         return request(options, (error, response, body) => {
             if (error) {
+                console.debug('Failed to post the logs: ', error);
                 return reqCallback(error.code);
             }
             if (response.statusCode >= INTERNAL_SERVER_ERROR) {
@@ -168,7 +170,10 @@ const sendLine = (payload, config, callback) => {
             return reqCallback(null, body);
         });
     }, (error, result) => {
-        if (error) return callback(error);
+        if (error) {
+            console.debug('Caught an error waiting for the results of the post: ', error);
+            return callback(error);
+        }
         return callback(null, result);
     });
 };
