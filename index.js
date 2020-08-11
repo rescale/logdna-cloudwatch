@@ -158,17 +158,17 @@ const sendLine = async(payload, config, callback) => {
         }, errorFilter: (errCode) => {
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
-    }, (reqCallback) => {
+    }, () => {
         return request(options, (error, response, body) => {
             if (error) {
                 console.error('Failed to post the logs: ', error);
-                return reqCallback(error.code);
+                throw (error);
             }
             if (response.statusCode >= INTERNAL_SERVER_ERROR) {
                 console.error('Server returned an internal server error: ', body);
-                return reqCallback('INTERNAL_SERVER_ERROR');
+                throw (new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
             }
-            return reqCallback(null, body);
+            return body;
         });
     });
 };
