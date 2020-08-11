@@ -35,9 +35,10 @@ const getApiKeyFromSSM = async(ssm_secret_path) => {
     try {
         const paramName = ssm_secret_path.split('/').pop();
 
-        var parameters = await ssmParameterResolver.resolve(paramName);
+        var parameters = await ssmParameterResolver.resolve(ssm_secret_path);
 
         console.debug('Returned Parameters: ', parameters);
+        console.debug('Using param name: ', paramName);
 
         return parameters.get(paramName);
     } catch (error) {
