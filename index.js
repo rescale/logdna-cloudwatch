@@ -23,7 +23,7 @@ const DEFAULT_HTTP_ERRORS = [
 ];
 
 // Pulls the LogDNA API key from SSM
-const getApiKeyFromSSM = async(ssm_secret_path) => {
+const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
     console.info('Attempting to pull the log dna api key from ssm via the path: ', ssm_secret_path);
 
     if (!ssm_secret_path || ssm_secret_path === '') {
@@ -33,14 +33,12 @@ const getApiKeyFromSSM = async(ssm_secret_path) => {
     }
 
     try {
-        const paramName = ssm_secret_path.split('/').pop();
-
         var parameters = await ssmParameterResolver.resolve(ssm_secret_path);
 
         console.debug('Returned Parameters: ', parameters);
-        console.debug('Using param name: ', paramName);
+        console.debug('Using param name: ', param_name);
 
-        return parameters.get(paramName);
+        return parameters.get(param_name);
     } catch (error) {
         console.error('Failed to pull the LogDNA API Key from SSM: ', error);
     }
@@ -67,10 +65,10 @@ const getConfig = async() => {
         config.log_raw_event = config.log_raw_event === 'yes' || config.log_raw_event === 'true';
     }
 
-    if ((!config.key || config.key === '') && process.env.SSM_SECRET_LOGNDA_KEY_PATH && process.env.SSM_SECRET_LOGNDA_KEY_PATH !== '') {
+    if ((!config.key || config.key === '') && process.env.SSM_SECRET_LOGNDA_KEY_NAME && process.env.SSM_SECRET_LOGNDA_KEY_NAME !== '') {
         console.info('Looking for api key from ssm');
         try {
-            config.key = await getApiKeyFromSSM(process.env.SSM_SECRET_LOGNDA_KEY_PATH);
+            config.key = await getApiKeyFromSSM(process.env.SSM_PARAMS_PATH, process.env.SSM_SECRET_LOGNDA_KEY_NAME);
         } catch (error) {
             console.error('Failed to get the api key from ssm: ', error);
             config.key = undefined;
