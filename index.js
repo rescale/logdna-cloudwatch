@@ -35,9 +35,6 @@ const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
     try {
         var parameters = await ssmParameterResolver.resolve(ssm_secret_path);
 
-        console.debug('Returned Parameters: ', parameters);
-        console.debug('Using param name: ', param_name);
-
         return parameters.get(param_name);
     } catch (error) {
         console.error('Failed to pull the LogDNA API Key from SSM: ', error);
