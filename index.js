@@ -161,21 +161,15 @@ const sendLine = async(payload, config, callback) => {
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
     }, (reqCallback) => {
-        console.debug('Executing the request: ', options);
         return request(options, (error, response, body) => {
-            console.debug('Request callback fired with error: ', error);
-            console.debug('Request callback fired with resp: ', response);
-            console.debug('Request callback fired with body: ', body);
-
             if (error) {
-                console.debug('Failed to post the logs: ', error);
+                console.error('Failed to post the logs: ', error);
                 return reqCallback(error.code);
             }
             if (response.statusCode >= INTERNAL_SERVER_ERROR) {
-                console.debug('Server returned an internal server error: ', body);
+                console.error('Server returned an internal server error: ', body);
                 return reqCallback('INTERNAL_SERVER_ERROR');
             }
-            console.debug('Non failure response: ', body);
             return reqCallback(null, body);
         });
     });
@@ -186,7 +180,7 @@ const handler = async(event, context, callback) => {
     const config = await getConfig();
     try {
         var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
-        return callback(null, result);
+        return callback(result);
     } catch (error) {
         console.debug('Caught an error waiting for the results of the post: ', error);
         return callback(error);
