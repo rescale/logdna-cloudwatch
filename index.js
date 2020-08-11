@@ -33,6 +33,8 @@ const getApiKeyFromSSM = async(ssm_secret_path) => {
 
         var parameters = await ssmParameterResolver.resolve(process.env.SSM_SECRET_LOGNDA_KEY_PATH);
 
+        console.debug("Returned Parameters: ", parameters);
+
         return parameters.get(paramName);
     } catch (error) {
         console.error('Failed to pull the LogDNA API Key from SSM: ', error);
@@ -63,6 +65,8 @@ const getConfig = () => {
     if ((!config.key || config.key === '') && process.env.SSM_SECRET_LOGNDA_KEY_PATH && process.env.SSM_SECRET_LOGNDA_KEY_PATH !== '') {
         console.info('Looking for api key from ssm');
         config.key = getApiKeyFromSSM();
+
+        console.debug('API Key set to: ', config.key);
     }
 
     return config;
