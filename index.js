@@ -191,7 +191,7 @@ const sendLine = (payload, config, callback) => {
 // Main Handler
 const handler = async(event, context, callback) => {
     const config = await getConfig();
-    return sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
+    return await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
 };
 
 module.exports = {
