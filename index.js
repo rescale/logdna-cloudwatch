@@ -120,7 +120,7 @@ const prepareLogs = (eventData, log_raw_event) => {
 };
 
 // Ship the Logs
-const sendLine = (payload, config, callback) => {
+const sendLine = async(payload, config, callback) => {
     // Check for Ingestion Key
     if (!config.key) return callback('Missing LogDNA Ingestion Key');
 
@@ -153,7 +153,7 @@ const sendLine = (payload, config, callback) => {
     };
 
     // Flush the Log
-    asyncRetry({
+    return asyncRetry({
         times: MAX_REQUEST_RETRIES
         , interval: (retryCount) => {
             return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
@@ -178,20 +178,19 @@ const sendLine = (payload, config, callback) => {
             console.debug('Non failure response: ', body);
             return reqCallback(null, body);
         });
-    }, (error, result) => {
-        if (error) {
-            console.debug('Caught an error waiting for the results of the post: ', error);
-            return callback(error);
-        }
-        console.debug('Non error Result: ', result);
-        return callback(null, result);
     });
 };
 
 // Main Handler
 const handler = async(event, context, callback) => {
     const config = await getConfig();
-    return await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
+    try {
+        var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
+        return callback(null, result);
+    } catch (error) {
+        console.debug('Caught an error waiting for the results of the post: ', error);
+        return callback(error);
+    }
 };
 
 module.exports = {
