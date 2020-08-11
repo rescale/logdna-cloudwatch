@@ -46,7 +46,7 @@ const getApiKeyFromSSM = async(ssm_secret_path) => {
 };
 
 // Get Configuration from Environment Variables
-const getConfig = () => {
+const getConfig = async() => {
     const pkg = require('./package.json');
     let config = {
         log_raw_event: false
@@ -66,7 +66,12 @@ const getConfig = () => {
 
     if ((!config.key || config.key === '') && process.env.SSM_SECRET_LOGNDA_KEY_PATH && process.env.SSM_SECRET_LOGNDA_KEY_PATH !== '') {
         console.info('Looking for api key from ssm');
-        config.key = getApiKeyFromSSM(process.env.SSM_SECRET_LOGNDA_KEY_PATH);
+        try {
+            config.key = await getApiKeyFromSSM(process.env.SSM_SECRET_LOGNDA_KEY_PATH);
+        } catch (error) {
+            console.error('Failed to get the api key from ssm: ', error);
+            config.key = undefined;
+        }
 
         console.debug('API Key set to: ', config.key);
     }
@@ -169,8 +174,8 @@ const sendLine = (payload, config, callback) => {
 };
 
 // Main Handler
-const handler = (event, context, callback) => {
-    const config = getConfig();
+const handler = async(event, context, callback) => {
+    const config = await getConfig();
     return sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
 };
 

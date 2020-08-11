@@ -47,9 +47,9 @@ test('test parseEvent with the sample test data described in README', (t) => {
 });
 
 // Test getConfig
-test('test getConfig', (t) => {
+test('test getConfig', async(t) => {
 	// Test getConfig without any environment variable set
-	let config = index.getConfig();
+	let config = await index.getConfig();
 	t.equal(config.key, undefined);
 	t.equal(config.log_raw_event, false);
 	t.equal(config.UserAgent, `${pkg.name}/${pkg.version}`);
@@ -60,7 +60,7 @@ test('test getConfig', (t) => {
 	process.env.LOGDNA_HOSTNAME = hostname;
 	process.env.LOGDNA_TAGS = inputTags;
 	process.env.LOGDNA_KEY = sampleKey;
-	config = index.getConfig();
+	config = await index.getConfig();
 	t.equal(config.key, sampleKey);
 	t.equal(config.log_raw_event, false);
 	t.equal(config.UserAgent, `${pkg.name}/${pkg.version}`);
@@ -69,7 +69,7 @@ test('test getConfig', (t) => {
 
 	// Set LOG_RAW_EVENT to True
 	process.env.LOG_RAW_EVENT = 'True';
-	config = index.getConfig();
+	config = await index.getConfig();
 	t.equal(config.key, sampleKey);
 	t.equal(config.log_raw_event, true);
 	t.equal(config.UserAgent, `${pkg.name}/${pkg.version}`);
@@ -79,7 +79,7 @@ test('test getConfig', (t) => {
 	// Unset some environment variables
 	process.env.LOG_RAW_EVENT = '';
 	process.env.LOGDNA_TAGS = '';
-	config = index.getConfig();
+	config = await index.getConfig();
 	t.equal(config.key, sampleKey);
 	t.equal(config.log_raw_event, false);
 	t.equal(config.UserAgent, `${pkg.name}/${pkg.version}`);
@@ -88,7 +88,7 @@ test('test getConfig', (t) => {
 
 	// Set LOG_RAW_EVENT to Yes
 	process.env.LOG_RAW_EVENT = 'yEs';
-	config = index.getConfig();
+	config = await index.getConfig();
 	t.equal(config.key, sampleKey);
 	t.equal(config.log_raw_event, true);
 	t.equal(config.UserAgent, `${pkg.name}/${pkg.version}`);
