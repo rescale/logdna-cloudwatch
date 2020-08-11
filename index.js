@@ -81,7 +81,9 @@ const getConfig = async() => {
 
 // Parse the GZipped Log Data
 const parseEvent = (event) => {
-    return JSON.parse(zlib.unzipSync(Buffer.from(event.awslogs.data, 'base64')));
+    const parsedEevent = JSON.parse(zlib.unzipSync(Buffer.from(event.awslogs.data, 'base64')));
+    console.debug('Parsed event: ', parsedEevent);
+    return parsedEevent;
 };
 
 // Prepare the Messages and Options
