@@ -119,7 +119,7 @@ const prepareLogs = (eventData, log_raw_event) => {
 };
 
 // Ship the Logs
-const sendLine = async(payload, config, callback) => {
+const sendLine = async(payload, config) => {
     // Check for Ingestion Key
     if (!config.key) return callback('Missing LogDNA Ingestion Key');
 
@@ -174,14 +174,9 @@ const sendLine = async(payload, config, callback) => {
 };
 
 // Main Handler
-const handler = async(event, context, callback) => {
+const handler = async(event, context) => {
     const config = await getConfig();
-    try {
-        return await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
-    } catch (error) {
-        console.debug('Caught an error waiting for the results of the post: ', error);
-        throw (error);
-    }
+    return sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
 };
 
 module.exports = {
