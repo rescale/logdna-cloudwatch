@@ -82,7 +82,6 @@ const getConfig = async() => {
 // Parse the GZipped Log Data
 const parseEvent = (event) => {
     const parsedEevent = JSON.parse(zlib.unzipSync(Buffer.from(event.awslogs.data, 'base64')));
-    console.debug('Parsed event: ', parsedEevent);
     return parsedEevent;
 };
 
@@ -127,7 +126,6 @@ const sendLine = async(payload, config, callback) => {
     // Set Hostname
     const hostname = config.hostname || JSON.parse(payload[0].line).log.group;
 
-    console.debug('Pushing logs to: ', LOGDNA_URL);
     // Prepare HTTP Request Options
     const options = {
         url: LOGDNA_URL
