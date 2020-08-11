@@ -127,20 +127,12 @@ test('test prepareLogs', (t) => {
 
 // Test sendLine
 test('test sendLine', (t) => {
-	index.sendLine({ line: eventData.logEvents[0].message }, {}, (error, response) => {
-		t.equal(error, missingKey);
-		
-		// Finish the test suite
-		t.end();
-	});
+	t.rejects(index.sendLine({ line: eventData.logEvents[0].message }, {}), missingKey);
+	t.end();
 });
 
 // Test handler
 test('test handler', (t) => {
-	index.sendLine(rawEvent, {}, (error, response) => {
-		t.equal(error, missingKey);
-		
-		// Finish the test suite
-		t.end();
-	});
+	t.rejects(index.sendLine(rawEvent, {}), missingKey);
+	t.end();
 });
