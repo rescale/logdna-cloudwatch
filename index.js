@@ -177,11 +177,10 @@ const sendLine = async(payload, config, callback) => {
 const handler = async(event, context, callback) => {
     const config = await getConfig();
     try {
-        var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
-        return callback(result);
+        return await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config, callback);
     } catch (error) {
         console.debug('Caught an error waiting for the results of the post: ', error);
-        return callback(error);
+        throw (error);
     }
 };
 
