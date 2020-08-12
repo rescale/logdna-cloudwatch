@@ -26,24 +26,26 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - run: apt install -y jq
     - run: npm install
     - run: npm run lint
     - run: npm run build --if-present
     - run: npm run test
     - run: npm install --production
-    - run: zip logdna-cloudwatch.zip -r node_modules/ index.js package.json
+    - run: export LAMBDA_VERSION=$(unzip -p logdna_cloudwatch_lambda.zip package.json | jq -r .version | tr "." "_")
+    - run: zip logdna-cloudwatch-$LAMBDA_VERSISON.zip -r node_modules/ index.js package.json
       
     - name: Upload LogDNA Cloudwatch
       uses: actions/upload-artifact@v1
       with:
-        name: logdna-cloudwatch.zip
-        path: ./logdna-cloudwatch.zip
+        name: logdna-cloudwatch-${{ env.LAMBDA_VERSION }}.zip
+        path: ./logdna-cloudwatch-*.zip
 
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ./logdna-cloudwatch.zip
+        files: ./logdna-cloudwatch-${{ env.LAMBDA_VERSION }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
