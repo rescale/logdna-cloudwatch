@@ -1,6 +1,6 @@
 {
   "name": "logdna-cloudwatch",
-  "version": "2.2.27",
+  "version": "2.2.28",
   "description": "Lambda Functions to Stream Logs from AWS CloudWatch to LogDNA",
   "main": "index.js",
   "scripts": {
