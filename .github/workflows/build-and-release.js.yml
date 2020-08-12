@@ -43,6 +43,10 @@ jobs:
       with:
         name: logdna-cloudwatch-${{ env.LAMBDA_VERSION }}-${{ env.SHORT_COMMIT }}.zip
         path: ./logdna-cloudwatch-${{ env.LAMBDA_VERSION }}-${{ env.SHORT_COMMIT }}.zip
+    
+    - name: Prep release artifact
+      if: startsWith(github.ref, 'refs/tags/')
+      run: cp logdna-cloudwatch-$LAMBDA_VERSION-$SHORT_COMMIT.zip logdna-cloudwatch-$LAMBDA_VERSION.zip
 
     - name: Release
       uses: softprops/action-gh-release@v1
