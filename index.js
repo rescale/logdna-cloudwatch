@@ -157,6 +157,7 @@ const sendLine = async(payload, config) => {
         , interval: (retryCount) => {
             return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
         }, errorFilter: (errCode) => {
+            console.debug('error filter with code: ', errCode);
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
     }, async() => {
