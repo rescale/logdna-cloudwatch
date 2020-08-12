@@ -152,7 +152,7 @@ const sendLine = async(payload, config) => {
 
     // Flush the Log
     console.debug('About to run push');
-    var result = await asyncRetry({
+    var result = asyncRetry({
         times: MAX_REQUEST_RETRIES
         , interval: (retryCount) => {
             return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
@@ -183,7 +183,7 @@ const sendLine = async(payload, config) => {
 // Main Handler
 const handler = async(event, context) => {
     const config = await getConfig();
-    return await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
+    return sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
 };
 
 module.exports = {
