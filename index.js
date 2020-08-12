@@ -5,6 +5,7 @@ const asyncRetry = require('async').retry;
 const ssmParameterResolver = require('aws-ssm-parameter-resolve');
 const zlib = require('zlib');
 const process = require('process');
+const { resolve } = require('path');
 
 // Constants
 const MAX_REQUEST_TIMEOUT_MS = parseInt(process.env.LOGDNA_MAX_REQUEST_TIMEOUT) || 30000;
@@ -152,7 +153,7 @@ const sendLine = async(payload, config) => {
 
     // Flush the Log
     console.debug('About to run push');
-    var result = asyncRetry({
+    var result = await asyncRetry({
         times: MAX_REQUEST_RETRIES
         , interval: (retryCount) => {
             return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
@@ -167,13 +168,13 @@ const sendLine = async(payload, config) => {
                 console.debug('response from push: ', response);
                 if (response.status >= INTERNAL_SERVER_ERROR) {
                     console.error('Server returned an internal server error: ', response.data);
-                    asyncRetryCallback(new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
+                    return asyncRetryCallback(new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
                 }
-                asyncRetryCallback(undefined, response.data);
+                return asyncRetryCallback(undefined, response.data);
             })
             .catch((error) => {
                 console.error('Failed to post the logs: ', error);
-                asyncRetryCallback(error);
+                return asyncRetryCallback(error);
             });
     });
     console.debug('after push, result: ', result);
@@ -183,7 +184,14 @@ const sendLine = async(payload, config) => {
 // Main Handler
 const handler = async(event, context) => {
     const config = await getConfig();
-    return sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
+    return new Promise(async(resolve, reject) => {
+        try {
+            var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
+            resolve(result);
+        } catch (error) {
+            reject(error);
+        }
+    });
 };
 
 module.exports = {
