@@ -187,8 +187,10 @@ const handler = async(event, context) => {
     return new Promise(async(resolve, reject) => {
         try {
             var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
+            console.debug('in promise of handler, result: ', result);
             resolve(result);
         } catch (error) {
+            console.debug('caught an error from sendline: ', error);
             reject(error);
         }
     });
