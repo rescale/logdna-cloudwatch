@@ -151,7 +151,8 @@ const sendLine = async(payload, config) => {
     };
 
     // Flush the Log
-    return asyncRetry({
+    console.debug('About to run push');
+    var result = await asyncRetry({
         times: MAX_REQUEST_RETRIES
         , interval: (retryCount) => {
             return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
@@ -159,8 +160,10 @@ const sendLine = async(payload, config) => {
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
     }, async() => {
+        console.debug('in push method.');
         try {
             var response = await axios.request(options);
+            console.debug('response from push: ', response);
             if (response.status >= INTERNAL_SERVER_ERROR) {
                 console.error('Server returned an internal server error: ', response.data);
                 throw (new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
@@ -171,6 +174,8 @@ const sendLine = async(payload, config) => {
             throw (error);
         }
     });
+    console.debug('after push');
+    return result;
 };
 
 // Main Handler
