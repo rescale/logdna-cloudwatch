@@ -1,7 +1,7 @@
 // External Libraries
 const agent = require('agentkeepalive');
+const axios = require('axios');
 const asyncRetry = require('async').retry;
-const request = require('request');
 const ssmParameterResolver = require('aws-ssm-parameter-resolve');
 const zlib = require('zlib');
 const process = require('process');
@@ -129,15 +129,15 @@ const sendLine = async(payload, config) => {
     // Prepare HTTP Request Options
     const options = {
         url: LOGDNA_URL
-        , qs: config.tags ? {
+        , params: config.tags ? {
             tags: config.tags
             , hostname: hostname
         } : { hostname: hostname }
         , method: 'POST'
-        , body: JSON.stringify({
+        , data: {
             e: 'ls'
             , ls: payload
-        })
+        }
         , auth: { username: config.key }
         , headers: {
             'Content-Type': 'application/json; charset=UTF-8'
@@ -145,7 +145,7 @@ const sendLine = async(payload, config) => {
         }
         , timeout: MAX_REQUEST_TIMEOUT_MS
         , withCredentials: false
-        , agent: new agent.HttpsAgent({
+        , httpsAgent: new agent.HttpsAgent({
             freeSocketTimeout: FREE_SOCKET_TIMEOUT_MS
         })
     };
@@ -158,18 +158,18 @@ const sendLine = async(payload, config) => {
         }, errorFilter: (errCode) => {
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
-    }, () => {
-        return request(options, (error, response, body) => {
-            if (error) {
-                console.error('Failed to post the logs: ', error);
-                throw (error);
-            }
-            if (response.statusCode >= INTERNAL_SERVER_ERROR) {
-                console.error('Server returned an internal server error: ', body);
+    }, async() => {
+        try {
+            var response = await axios.request(options);
+            if (response.status >= INTERNAL_SERVER_ERROR) {
+                console.error('Server returned an internal server error: ', response.data);
                 throw (new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
             }
-            return body;
-        });
+            return response.data;
+        } catch (error) {
+            console.error('Failed to post the logs: ', error);
+            throw (error);
+        }
     });
 };
 
