@@ -160,19 +160,19 @@ const sendLine = async(payload, config) => {
             console.debug('error filter with code: ', errCode);
             return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
         }
-    }, async() => {
+    }, async(asyncRetryCallback) => {
         console.debug('in push method.');
         try {
             var response = await axios.request(options);
             console.debug('response from push: ', response);
             if (response.status >= INTERNAL_SERVER_ERROR) {
                 console.error('Server returned an internal server error: ', response.data);
-                throw (new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
+                asyncRetryCallback(new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
             }
-            return response.data;
+            asyncRetryCallback(undefined, response.data);
         } catch (error) {
             console.error('Failed to post the logs: ', error);
-            throw (error);
+            asyncRetryCallback(error);
         }
     });
     console.debug('after push, result: ', result);
