@@ -156,32 +156,42 @@ const sendLine = async(payload, config) => {
 
     // Flush the Log
     console.debug('About to run push');
-    var result = await asyncRetry({
-        times: MAX_REQUEST_RETRIES
-        , interval: (retryCount) => {
-            return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
-        }, errorFilter: (errCode) => {
-            console.debug('error filter with code: ', errCode);
-            return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
+    // var result = await asyncRetry({
+    //     times: MAX_REQUEST_RETRIES
+    //     , interval: (retryCount) => {
+    //         return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
+    //     }, errorFilter: (errCode) => {
+    //         console.debug('error filter with code: ', errCode);
+    //         return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
+    //     }
+    // }, (asyncRetryCallback) => {
+    //     console.debug('in push method.');
+    //     axios(options)
+    //         .then((response) => {
+    //             console.debug('response from push: ', response);
+    //             if (response.status >= INTERNAL_SERVER_ERROR) {
+    //                 console.error('Server returned an internal server error: ', response.data);
+    //                 return asyncRetryCallback(new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
+    //             }
+    //             return asyncRetryCallback(undefined, response.data);
+    //         })
+    //         .catch((error) => {
+    //             console.error('Failed to post the logs: ', error);
+    //             return asyncRetryCallback(error);
+    //         });
+    // });
+    try {
+        var response = await axios(options);
+        console.debug('response from push: ', response);
+        if (response.status >= INTERNAL_SERVER_ERROR) {
+            console.error('Server returned an internal server error: ', response.data);
+            throw (new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
         }
-    }, (asyncRetryCallback) => {
-        console.debug('in push method.');
-        axios(options)
-            .then((response) => {
-                console.debug('response from push: ', response);
-                if (response.status >= INTERNAL_SERVER_ERROR) {
-                    console.error('Server returned an internal server error: ', response.data);
-                    return asyncRetryCallback(new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
-                }
-                return asyncRetryCallback(undefined, response.data);
-            })
-            .catch((error) => {
-                console.error('Failed to post the logs: ', error);
-                return asyncRetryCallback(error);
-            });
-    });
-    console.debug('after push, result: ', result);
-    return result;
+        return response.data;
+    } catch (error) {
+        console.error('Failed to post the logs: ', error);
+        throw (error);
+    }
 };
 
 // Main Handler
