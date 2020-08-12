@@ -28,7 +28,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: |
         export SHORT_COMMIT=${GITHUB_SHA:0:7}
-        export LAMBDA_VERSION=$(unzip -p logdna_cloudwatch_lambda.zip package.json | jq -r .version | tr "." "_")
+        export LAMBDA_VERSION=$(cat package.json | jq -r .version | tr "." "_")
         echo "::set-env name=SHORT_COMMIT::$SHORT_COMMIT"
         echo "::set-env name=LAMBDA_VERSION::$LAMBDA_VERSION"
     - run: npm install
