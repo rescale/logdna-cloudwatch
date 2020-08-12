@@ -140,9 +140,9 @@ const sendLine = async(payload, config) => {
         }
         , auth: { username: config.key }
         , headers: {
-            'Content-Type': 'application/json; charset=UTF-8'
-            , 'user-agent': config.UserAgent
+            'user-agent': config.UserAgent
         }
+        , responseType: 'json'
         , timeout: MAX_REQUEST_TIMEOUT_MS
         , withCredentials: false
         , httpsAgent: new agent.HttpsAgent({
@@ -174,7 +174,7 @@ const sendLine = async(payload, config) => {
             throw (error);
         }
     });
-    console.debug('after push');
+    console.debug('after push, result: ', result);
     return result;
 };
 
