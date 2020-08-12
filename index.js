@@ -3,9 +3,9 @@ const agent = require('agentkeepalive');
 const axios = require('axios');
 const asyncRetry = require('async').retry;
 const ssmParameterResolver = require('aws-ssm-parameter-resolve');
-const zlib = require('zlib');
 const process = require('process');
-const { resolve } = require('path');
+const querystring = require('querystring');
+const zlib = require('zlib');
 
 // Constants
 const MAX_REQUEST_TIMEOUT_MS = parseInt(process.env.LOGDNA_MAX_REQUEST_TIMEOUT) || 30000;
@@ -134,6 +134,9 @@ const sendLine = async(payload, config) => {
             tags: config.tags
             , hostname: hostname
         } : { hostname: hostname }
+        , paramsSerializer: (params) => {
+            return querystring.stringify(params);
+        }
         , method: 'POST'
         , data: {
             e: 'ls'
@@ -163,7 +166,7 @@ const sendLine = async(payload, config) => {
         }
     }, (asyncRetryCallback) => {
         console.debug('in push method.');
-        axios.request(options)
+        axios(options)
             .then((response) => {
                 console.debug('response from push: ', response);
                 if (response.status >= INTERNAL_SERVER_ERROR) {
@@ -190,7 +193,6 @@ const handler = async(event, context) => {
             console.debug('in promise of handler, result: ', result);
             resolve(result);
         } catch (error) {
-            console.debug('caught an error from sendline: ', error);
             reject(error);
         }
     });
