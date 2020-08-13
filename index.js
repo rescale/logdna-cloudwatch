@@ -88,6 +88,7 @@ const parseEvent = (event) => {
 
 // Prepare the Messages and Options
 const prepareLogs = (eventData, log_raw_event) => {
+    console.debug('event: ', eventData);
     return eventData.logEvents.map((event) => {
         const eventMetadata = {
             event: {
@@ -155,7 +156,6 @@ const sendLine = async(payload, config) => {
     };
 
     // Flush the Log
-    console.debug('About to run push');
     // var result = await asyncRetry({
     //     times: MAX_REQUEST_RETRIES
     //     , interval: (retryCount) => {
@@ -182,7 +182,6 @@ const sendLine = async(payload, config) => {
     // });
     try {
         var response = await axios(options);
-        console.debug('response from push: ', response);
         if (response.status >= INTERNAL_SERVER_ERROR) {
             console.error('Server returned an internal server error: ', response.data);
             throw (new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
@@ -200,7 +199,6 @@ const handler = async(event, context) => {
     return new Promise(async(resolve, reject) => {
         try {
             var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
-            console.debug('in promise of handler, result: ', result);
             resolve(result);
         } catch (error) {
             reject(error);
