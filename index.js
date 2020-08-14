@@ -52,6 +52,12 @@ const getConfig = async() => {
         , UserAgent: `${pkg.name}/${pkg.version}`
     };
 
+    config.hostname_prefix = process.env.HOSTNAME_PREFIX ? process.env.HOSTNAME_PREFIX : '';
+    if (process.env.LOGDNA_APP_NAME) config.app_name = process.env.LOGDNA_APP_NAME;
+    if (process.env.LOGDNA_HOSTNAME_FOR_FARGATE) {
+        config.hostname_for_fargate = process.env.LOGDNA_HOSTNAME_FOR_FARGATE.toLowerCase();
+        config.hostname_for_fargate = config.hostname_for_fargate === 'yes' || config.hostname_for_fargate === 'true';
+    }
     if (process.env.LOGDNA_KEY) config.key = process.env.LOGDNA_KEY;
     if (process.env.LOGDNA_HOSTNAME) config.hostname = process.env.LOGDNA_HOSTNAME;
     if (process.env.LOGDNA_TAGS && process.env.LOGDNA_TAGS.length > 0) {
@@ -87,8 +93,9 @@ const parseEvent = (event) => {
 };
 
 // Prepare the Messages and Options
-const prepareLogs = (eventData, log_raw_event) => {
+const prepareLogs = (eventData, config) => {
     console.debug('event: ', eventData);
+    const logStreamComponents = eventData.logStream.split('/');
     return eventData.logEvents.map((event) => {
         const eventMetadata = {
             event: {
@@ -100,8 +107,15 @@ const prepareLogs = (eventData, log_raw_event) => {
             }
         };
 
+        if (config.hostname_for_fargate) {
+            eventMetadata.log.fargate_task = logStreamComponents[2];
+            eventMetadata.log.fargate_service_name = logStreamComponents[0];
+            eventMetadata.log.fargate_task_image_name = logStreamComponents[1];
+        }
+
         const eventLog = {
-            timestamp: event.timestamp
+            app: logStreamComponents[0]
+            , timestamp: event.timestamp
             , file: eventData.logStream
             , meta: {
                 owner: eventData.owner
@@ -111,7 +125,7 @@ const prepareLogs = (eventData, log_raw_event) => {
             }, eventMetadata))
         };
 
-        if (log_raw_event) {
+        if (config.log_raw_event) {
             eventLog.line = event.message;
             eventLog.meta = Object.assign({}, eventLog.meta, eventMetadata);
         }
@@ -121,12 +135,21 @@ const prepareLogs = (eventData, log_raw_event) => {
 };
 
 // Ship the Logs
-const sendLine = async(payload, config) => {
+const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
     // Check for Ingestion Key
     if (!config.key) throw (new Error('Missing LogDNA Ingestion Key'));
 
     // Set Hostname
-    const hostname = config.hostname || JSON.parse(payload[0].line).log.group;
+    var hostname = config.hostname_prefix;
+
+    if (config.hostname_for_fargate) {
+        const logStreamComponents = eventLogStream.split('/');
+        hostname += logStreamComponents[0];
+    } else if (config.hostname) {
+        hostname += config.hostname;
+    } else {
+        hostname += eventLogGroup;
+    }
 
     // Prepare HTTP Request Options
     const options = {
@@ -198,7 +221,8 @@ const handler = async(event, context) => {
     const config = await getConfig();
     return new Promise(async(resolve, reject) => {
         try {
-            var result = await sendLine(prepareLogs(parseEvent(event), config.log_raw_event), config);
+            const parsedEvent = parseEvent(event);
+            const result = await sendLine(prepareLogs(parsedEvent, config), config, parsedEvent.logGroup, parsedEvent.logStream);
             resolve(result);
         } catch (error) {
             reject(error);
