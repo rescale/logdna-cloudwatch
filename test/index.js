@@ -102,7 +102,10 @@ test('test getConfig', async(t) => {
 // Test prepareLogs
 test('test prepareLogs', (t) => {
 	// Without log_raw_event set to true
-	let eventLog = index.prepareLogs(eventData, false)[0];
+	const config1 = {
+		log_raw_event: false
+	};
+	let eventLog = index.prepareLogs(eventData, config1)[0];
 	t.assert(eventLog.timestamp < Date.now());
 	t.equal(eventLog.file, eventData.logStream);
 	t.equal(eventLog.meta.owner, eventData.owner);
@@ -112,7 +115,10 @@ test('test prepareLogs', (t) => {
 	}, eventMetaData));
 
 	// With log_raw_event set to true
-	eventLog = index.prepareLogs(eventData, true)[0];
+	const config2 = {
+		log_raw_event: true
+	};
+	eventLog = index.prepareLogs(eventData, config2)[0];
 	t.assert(eventLog.timestamp < Date.now());
 	t.equal(eventLog.file, eventData.logStream);
 	t.equal(eventLog.line, eventData.logEvents[0].message);
@@ -127,12 +133,12 @@ test('test prepareLogs', (t) => {
 
 // Test sendLine
 test('test sendLine', (t) => {
-	t.rejects(index.sendLine({ line: eventData.logEvents[0].message }, {}), missingKey);
+	t.rejects(index.sendLine({ line: eventData.logEvents[0].message }, {}, 'test-log-group', 'test/log/stream'), missingKey);
 	t.end();
 });
 
 // Test handler
 test('test handler', (t) => {
-	t.rejects(index.sendLine(rawEvent, {}), missingKey);
+	t.rejects(index.sendLine(rawEvent, {}, 'test-log-group', 'test/log/stream'), missingKey);
 	t.end();
 });
