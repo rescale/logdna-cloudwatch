@@ -53,6 +53,7 @@ const getConfig = async() => {
     };
 
     config.hostname_prefix = process.env.HOSTNAME_PREFIX ? process.env.HOSTNAME_PREFIX : '';
+    config.hostname_postfix = process.env.HOSTNAME_POSTFIX ? process.env.HOSTNAME_POSTFIX : '';
     if (process.env.LOGDNA_APP_NAME) config.app_name = process.env.LOGDNA_APP_NAME;
     if (process.env.LOGDNA_HOSTNAME_FOR_FARGATE) {
         config.hostname_for_fargate = process.env.LOGDNA_HOSTNAME_FOR_FARGATE.toLowerCase();
@@ -108,9 +109,9 @@ const prepareLogs = (eventData, config) => {
         };
 
         if (config.hostname_for_fargate) {
-            eventMetadata.log.fargate_task = logStreamComponents[2];
-            eventMetadata.log.fargate_service_name = logStreamComponents[0];
-            eventMetadata.log.fargate_task_image_name = logStreamComponents[1];
+            eventMetadata.log.fargate_log_prefix = logStreamComponents[0];
+            eventMetadata.log.fargate_task_name = logStreamComponents[1];
+            eventMetadata.log.fargate_task_id = logStreamComponents[2];
         }
 
         const eventLog = {
@@ -144,12 +145,14 @@ const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
 
     if (config.hostname_for_fargate) {
         const logStreamComponents = eventLogStream.split('/');
-        hostname += logStreamComponents[0];
+        hostname += logStreamComponents[1];
     } else if (config.hostname) {
         hostname += config.hostname;
     } else {
         hostname += eventLogGroup;
     }
+
+    hostname += config.hostname_postfix;
 
     // Prepare HTTP Request Options
     const options = {
@@ -178,31 +181,6 @@ const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
         })
     };
 
-    // Flush the Log
-    // var result = await asyncRetry({
-    //     times: MAX_REQUEST_RETRIES
-    //     , interval: (retryCount) => {
-    //         return REQUEST_RETRY_INTERVAL_MS * Math.pow(2, retryCount);
-    //     }, errorFilter: (errCode) => {
-    //         console.debug('error filter with code: ', errCode);
-    //         return DEFAULT_HTTP_ERRORS.includes(errCode) || errCode === 'INTERNAL_SERVER_ERROR';
-    //     }
-    // }, (asyncRetryCallback) => {
-    //     console.debug('in push method.');
-    //     axios(options)
-    //         .then((response) => {
-    //             console.debug('response from push: ', response);
-    //             if (response.status >= INTERNAL_SERVER_ERROR) {
-    //                 console.error('Server returned an internal server error: ', response.data);
-    //                 return asyncRetryCallback(new Error(response.statusCode, 'INTERNAL_SERVER_ERROR'));
-    //             }
-    //             return asyncRetryCallback(undefined, response.data);
-    //         })
-    //         .catch((error) => {
-    //             console.error('Failed to post the logs: ', error);
-    //             return asyncRetryCallback(error);
-    //         });
-    // });
     try {
         var response = await axios(options);
         if (response.status >= INTERNAL_SERVER_ERROR) {
