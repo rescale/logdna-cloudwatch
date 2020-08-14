@@ -144,7 +144,7 @@ const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
     var hostname = config.hostname_prefix;
 
     if (config.hostname_for_fargate) {
-        hostname += eventLogGroup.replace('/', '-');
+        hostname += eventLogGroup.substring(1).replace(/\//g, '-');
     } else if (config.hostname) {
         hostname += config.hostname;
     } else {
