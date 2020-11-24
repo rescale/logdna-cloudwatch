@@ -114,15 +114,14 @@ const prepareLogs = (eventData, config) => {
             eventMetadata.log.fargate_task_id = logStreamComponents[2];
         }
 
-        var appName = logStreamComponents[0]
+        var appName = logStreamComponents[0];
 
         if (logGroupComponents[1].toLowerCase() === 'rds') {
-            config.is_for_rds = true
+            config.is_for_rds = true;
             const logStreamComponentsRds = eventData.logStream.split('.');
-            appName = logStreamComponentsRds[0] + '-' + logStreamComponentsRds[4]
-        }
-        else {
-            config.is_for_rds = false
+            appName = logStreamComponentsRds[0] + '-' + logStreamComponentsRds[4];
+        } else {
+            config.is_for_rds = false;
         }
 
         const eventLog = {
@@ -156,10 +155,9 @@ const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
 
     if (config.hostname_for_fargate) {
         hostname += eventLogGroup.substring(1).replace(/\//g, '-');
-    } 
-    else if (config.is_for_rds) {
-        var logGroupComponents = eventLogGroup.split('.')
-        hostname += '-' + logGroupComponents[1] + '-' + logGroupComponents[4] + '-' + logGroupComponents[3]
+    } else if (config.is_for_rds) {
+        var logGroupComponents = eventLogGroup.split('.');
+        hostname += '-' + logGroupComponents[1] + '-' + logGroupComponents[4] + '-' + logGroupComponents[3];
     }
     else if (config.hostname) {
         hostname += config.hostname;
