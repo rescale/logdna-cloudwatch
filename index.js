@@ -159,7 +159,7 @@ const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
     } 
     else if (config.is_for_rds) {
         var logGroupComponents = eventLogGroup.split('.')
-        hostname += '-' + logGroupComponents[1] + '-' + logGroupComponents[4] + '-' logGroupComponents[3]
+        hostname += '-' + logGroupComponents[1] + '-' + logGroupComponents[4] + '-' + logGroupComponents[3]
     }
     else if (config.hostname) {
         hostname += config.hostname;
