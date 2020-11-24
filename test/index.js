@@ -30,6 +30,19 @@ const eventData = {
 	}]
 };
 
+const eventDataRds = {
+	messageType: 'DATA_MESSAGE'
+	, owner: '123456789012'
+    , logGroup: '/aws/rds/instance/instanceid-123/postgresql'
+	, logStream: 'instanceid-123.0'
+	, subscriptionFilters: [ 'LambdaStream_cloudwatchlogs-node' ]
+	, logEvents: [{
+		id: '34622316099697884706540976068822859012661220141643892546'
+		, timestamp: 1557946425136
+		, message: 'This is Sample Log Line for RDS CloudWatch Logging...'
+	}]
+};
+
 const eventMetaData = {
 	event: {
 		type: eventData.messageType
@@ -37,6 +50,16 @@ const eventMetaData = {
 	}, log: {
 		group: eventData.logGroup
 		, stream: eventData.logStream
+	}
+};
+
+const eventMetaDataRds = {
+	event: {
+		type: eventDataRds.messageType
+		, id: eventDataRds.logEvents[0].id
+	}, log: {
+		group: eventDataRds.logGroup
+		, stream: eventDataRds.logStream
 	}
 };
 
@@ -130,6 +153,42 @@ test('test prepareLogs', (t) => {
 	// Finish the test suite
 	t.end();
 });
+
+// Test prepareLogs for rds
+test('test prepareLogs for rds', (t) => {
+	// Without log_raw_event set to true
+	const config1 = {
+		log_raw_event: false
+	};
+	let eventLog = index.prepareLogs(eventDataRds, config1)[0];
+	t.assert(eventLog.timestamp < Date.now());
+	t.equal(eventLog.file, eventDataRds.logStream);
+	t.equal(eventLog.meta.owner, eventDataRds.owner);
+	t.deepEqual(eventLog.meta.filters, eventDataRds.subscriptionFilters);
+	t.deepEqual(JSON.parse(eventLog.line), Object.assign({
+		message: eventDataRds.logEvents[0].message
+    }, eventMetaDataRds));
+    t.equal(eventLog.app, "rds-postgresql-instanceid-123");
+
+	// With log_raw_event set to true
+	const config2 = {
+		log_raw_event: true
+	};
+	eventLog = index.prepareLogs(eventDataRds, config2)[0];
+	t.assert(eventLog.timestamp < Date.now());
+	t.equal(eventLog.file, eventDataRds.logStream);
+	t.equal(eventLog.line, eventDataRds.logEvents[0].message);
+	t.deepEqual(eventLog.meta, Object.assign({
+		owner: eventDataRds.owner
+		, filters: eventDataRds.subscriptionFilters
+    }, eventMetaDataRds));
+    t.equal(eventLog.app, "rds-postgresql-instanceid-123");
+
+
+	// Finish the test suite
+	t.end();
+});
+
 
 // Test sendLine
 test('test sendLine', (t) => {
