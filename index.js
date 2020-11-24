@@ -96,7 +96,7 @@ const parseEvent = (event) => {
 // Prepare the Messages and Options
 const prepareLogs = (eventData, config) => {
     const logStreamComponents = eventData.logStream.split('/');
-    const logGroupComponents = eventData.logStreeam.split('/');
+    const logGroupComponents = eventData.logStream.split('/');
     return eventData.logEvents.map((event) => {
         const eventMetadata = {
             event: {
@@ -116,7 +116,7 @@ const prepareLogs = (eventData, config) => {
 
         var appName = logStreamComponents[0];
 
-        if (logGroupComponents[1].toLowerCase() === 'rds') {
+        if (logGroupComponents[1] && logGroupComponents[1].toLowerCase() === 'rds') {
             config.is_for_rds = true;
             const logStreamComponentsRds = eventData.logStream.split('.');
             appName = logStreamComponentsRds[0] + '-' + logStreamComponentsRds[4];
