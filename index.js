@@ -95,8 +95,8 @@ const parseEvent = (event) => {
 
 // Prepare the Messages and Options
 const prepareLogs = (eventData, config) => {
-    console.debug('event: ', eventData);
     const logStreamComponents = eventData.logStream.split('/');
+    const logGroupComponents = eventData.logStreeam.split('/');
     return eventData.logEvents.map((event) => {
         const eventMetadata = {
             event: {
@@ -114,8 +114,19 @@ const prepareLogs = (eventData, config) => {
             eventMetadata.log.fargate_task_id = logStreamComponents[2];
         }
 
+        var appName = logStreamComponents[0]
+
+        if (logGroupComponents[1].toLowerCase() === 'rds') {
+            config.is_for_rds = true
+            const logStreamComponentsRds = eventData.logStream.split('.');
+            appName = logStreamComponentsRds[0] + '-' + logStreamComponentsRds[4]
+        }
+        else {
+            config.is_for_rds = false
+        }
+
         const eventLog = {
-            app: logStreamComponents[0]
+            app: appName
             , timestamp: event.timestamp
             , file: eventData.logStream
             , meta: {
@@ -145,7 +156,12 @@ const sendLine = async(payload, config, eventLogGroup, eventLogStream) => {
 
     if (config.hostname_for_fargate) {
         hostname += eventLogGroup.substring(1).replace(/\//g, '-');
-    } else if (config.hostname) {
+    } 
+    else if (config.is_for_rds) {
+        var logGroupComponents = eventLogGroup.split('.')
+        hostname += '-' + logGroupComponents[1] + '-' + logGroupComponents[4] + '-' logGroupComponents[3]
+    }
+    else if (config.hostname) {
         hostname += config.hostname;
     } else {
         hostname += eventLogGroup;
