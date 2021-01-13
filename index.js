@@ -87,7 +87,9 @@ const getConfig = async() => {
     if ((!config.key || config.key === '') && process.env.SSM_SECRET_LOGNDA_KEY_NAME && process.env.SSM_SECRET_LOGNDA_KEY_NAME !== '') {
         console.info('Looking for api key from ssm');
         try {
-            config.key = await getApiKeyFromSSM(process.env.SSM_PARAMS_PATH, process.env.SSM_SECRET_LOGNDA_KEY_NAME);
+            var apiKeyFromSSM = await getApiKeyFromSSM(process.env.SSM_PARAMS_PATH, process.env.SSM_SECRET_LOGNDA_KEY_NAME);
+            console.info('Api Key from SSM Response length: ', apiKeyFromSSM.length);
+            config.key = apiKeyFromSSM;
         } catch (error) {
             console.error('Failed to get the api key from ssm: ', error);
             config.key = undefined;
