@@ -4,6 +4,15 @@
 
 The LogDNA AWS CloudWatch integration relies on [AWS Lambda](https://aws.amazon.com/documentation/lambda/) to route your [CloudWatch Logs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) to LogDNA.
 
+# Rescale Deploy Instructions:
+
+- Make changes on feature branch, merge to master.
+- On master branch bump the version in `package.json` to whatever you want.
+- Commit the `package.json` change with simple change notes.
+- `git push`
+- Create a tag and push it: `git tag -a vX.XX.XXX` -> `get push --tags` *Don't forget the `v` prefix in the tag!*
+- Execute the `cloudformation-deploy-platform-lambdas` job on the build server to deploy the lambda.
+
 ## Configure the LogDNA AWS Lambda function
 
 1. Create a [new Lambda function](https://console.aws.amazon.com/lambda) and select `Author from scratch`

@@ -29,7 +29,7 @@ var LOGDNA_API_KEY = '';
 const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
     return new Promise((resolve, reject) => {
         if (LOGDNA_API_KEY !== '') {
-            console.debug('Resuing existing api key');
+            console.debug('Reusing existing api key');
             resolve(LOGDNA_API_KEY);
         } else if (!ssm_secret_path || ssm_secret_path === '') {
             console.warn('No ssm path for logdna api key was supplied.');
