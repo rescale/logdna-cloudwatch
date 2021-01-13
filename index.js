@@ -45,7 +45,9 @@ const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
                         reject(err);
                     } else {
                         LOGDNA_API_KEY = data.Value;
-                        resolve(data.Value);
+                        data.Value = '******************';
+                        console.info('Successfully pulled the logdna api key from ssm:', data);
+                        resolve(LOGDNA_API_KEY);
                     }
                 });
             } catch (error) {
