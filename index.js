@@ -29,23 +29,29 @@ var LOGDNA_API_KEY = '';
 const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
     return new Promise((resolve, reject) => {
         if (LOGDNA_API_KEY !== '') {
+            console.debug('Resuing existing api key');
             resolve(LOGDNA_API_KEY);
         } else if (!ssm_secret_path || ssm_secret_path === '') {
             console.warn('No ssm path for logdna api key was supplied.');
 
             reject('Missing LogDNA API SSM Path.');
         } else {
-            console.info('Attempting to pull the log dna api key from ssm via the path: ', ssm_secret_path);
+            console.info('Attempting to pull the log dna api key from ssm via : "' + ssm_secret_path + '/' + param_name + '".');
 
-            ssm.getParameter({ Name: ssm_secret_path + '/' + param_name, WithDecryption: true }, (err, data) => {
-                if (err) {
-                    console.error('Failed to fetch the log dna api key from ssm due to: ', err);
-                    reject(err);
-                } else {
-                    LOGDNA_API_KEY = data.Value;
-                    resolve(data.Value);
-                }
-            });
+            try {
+                ssm.getParameter({ Name: ssm_secret_path + '/' + param_name, WithDecryption: true }, (err, data) => {
+                    if (err) {
+                        console.error('Failed to fetch the log dna api key from ssm due to: ', err);
+                        reject(err);
+                    } else {
+                        LOGDNA_API_KEY = data.Value;
+                        resolve(data.Value);
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to fetch log dna api key from ssm due to exception: ', error);
+                reject(error);
+            }
         }
     });
 };
