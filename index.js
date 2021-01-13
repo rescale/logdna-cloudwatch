@@ -22,6 +22,7 @@ const DEFAULT_HTTP_ERRORS = [
     , 'ECONNREFUSED'
     , 'ENOTFOUND'
 ];
+const ssm = new SSM();
 var LOGDNA_API_KEY = '';
 
 // Pulls the LogDNA API key from SSM
@@ -36,7 +37,7 @@ const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
         } else {
             console.info('Attempting to pull the log dna api key from ssm via the path: ', ssm_secret_path);
 
-            SSM.getParameter({ Name: ssm_secret_path + '/' + param_name, WithDecryption: true }, (err, data) => {
+            ssm.getParameter({ Name: ssm_secret_path + '/' + param_name, WithDecryption: true }, (err, data) => {
                 if (err) {
                     console.error('Failed to fetch the log dna api key from ssm due to: ', err);
                     reject(err);
