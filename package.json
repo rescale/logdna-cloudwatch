@@ -1,6 +1,6 @@
 {
   "name": "logdna-cloudwatch",
-  "version": "2.2.51",
+  "version": "2.2.52",
   "description": "Lambda Functions to Stream Logs from AWS CloudWatch to LogDNA",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "agentkeepalive": "^4.0.2",
     "async": "^2.6.2",
     "axios": "^0.19.2",
-    "aws-ssm-parameter-resolve": "3.0.0"
+    "aws-sdk": "^2.437.0"
   },
   "devDependencies": {
     "eslint": "^6.7.2",

@@ -2,7 +2,7 @@
 const agent = require('agentkeepalive');
 const axios = require('axios');
 const asyncRetry = require('async').retry;
-const ssmParameterResolver = require('aws-ssm-parameter-resolve');
+const SSM = require('aws-sdk/clients/ssm');
 const process = require('process');
 const querystring = require('querystring');
 const zlib = require('zlib');
@@ -22,26 +22,31 @@ const DEFAULT_HTTP_ERRORS = [
     , 'ECONNREFUSED'
     , 'ENOTFOUND'
 ];
+var LOGDNA_API_KEY = '';
 
 // Pulls the LogDNA API key from SSM
 const getApiKeyFromSSM = async(ssm_secret_path, param_name) => {
-    console.info('Attempting to pull the log dna api key from ssm via the path: ', ssm_secret_path);
+    return new Promise((resolve, reject) => {
+        if (LOGDNA_API_KEY !== '') {
+            resolve(LOGDNA_API_KEY);
+        } else if (!ssm_secret_path || ssm_secret_path === '') {
+            console.warn('No ssm path for logdna api key was supplied.');
 
-    if (!ssm_secret_path || ssm_secret_path === '') {
-        console.info('No ssm path was supplied.');
+            reject('Missing LogDNA API SSM Path.');
+        } else {
+            console.info('Attempting to pull the log dna api key from ssm via the path: ', ssm_secret_path);
 
-        return undefined;
-    }
-
-    try {
-        var parameters = await ssmParameterResolver.resolve(ssm_secret_path);
-
-        return parameters.get(param_name);
-    } catch (error) {
-        console.error('Failed to pull the LogDNA API Key from SSM: ', error);
-    }
-
-    return undefined;
+            SSM.getParameter({ Name: ssm_secret_path + '/' + param_name, WithDecryption: true }, (err, data) => {
+                if (err) {
+                    console.error('Failed to fetch the log dna api key from ssm due to: ', err);
+                    reject(err);
+                } else {
+                    LOGDNA_API_KEY = data.Value;
+                    resolve(data.Value);
+                }
+            });
+        }
+    });
 };
 
 // Get Configuration from Environment Variables
